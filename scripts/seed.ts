@@ -72,15 +72,15 @@ const setupPlatformUser = async (user: PlatformUser) => {
     schedules:
       user.completedOnboarding ?? true
         ? {
-            create: {
-              name: "Working Hours",
-              availability: {
-                createMany: {
-                  data: getAvailabilityFromSchedule(DEFAULT_SCHEDULE),
-                },
+          create: {
+            name: "Working Hours",
+            availability: {
+              createMany: {
+                data: getAvailabilityFromSchedule(DEFAULT_SCHEDULE),
               },
             },
-          }
+          },
+        }
         : undefined,
   };
 
@@ -389,7 +389,7 @@ async function createOrganizationAndAddMembersAndTeams({
               ...member.memberData,
               theme:
                 member.memberData.theme === "dark" ||
-                member.memberData.theme === "light"
+                  member.memberData.theme === "light"
                   ? member.memberData.theme
                   : undefined,
               password: member.memberData.password.create?.hash ?? "",
@@ -428,17 +428,15 @@ async function createOrganizationAndAddMembersAndTeams({
               },
             },
             update: {
-              toUrl: `${getOrgFullOrigin(orgData.slug)}/${
-                member.orgProfile.username
-              }`,
+              toUrl: `${getOrgFullOrigin(orgData.slug)}/${member.orgProfile.username
+                }`,
             },
             create: {
               fromOrgId: 0,
               type: RedirectType.User,
               from: member.memberData.username,
-              toUrl: `${getOrgFullOrigin(orgData.slug)}/${
-                member.orgProfile.username
-              }`,
+              toUrl: `${getOrgFullOrigin(orgData.slug)}/${member.orgProfile.username
+                }`,
             },
           });
 
@@ -1177,12 +1175,12 @@ async function main() {
       credentials: [
         !!process.env.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS
           ? {
-              type: "google_calendar",
-              key: JSON.parse(
-                process.env.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS
-              ) as Prisma.JsonObject,
-              appId: "google-calendar",
-            }
+            type: "google_calendar",
+            key: JSON.parse(
+              process.env.E2E_TEST_CALCOM_QA_GCAL_CREDENTIALS
+            ) as Prisma.JsonObject,
+            appId: "google-calendar",
+          }
           : null,
       ],
     });
@@ -1395,11 +1393,11 @@ async function main() {
           inTeams:
             i % 2 === 0
               ? [
-                  {
-                    slug: "team1",
-                    role: MembershipRole.MEMBER,
-                  },
-                ]
+                {
+                  slug: "team1",
+                  role: MembershipRole.MEMBER,
+                },
+              ]
               : [],
         })),
       ],
