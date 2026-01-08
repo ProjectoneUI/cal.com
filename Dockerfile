@@ -17,6 +17,7 @@ ARG CSP_POLICY
 ## We need these variables as required by Next.js build to create rewrites
 ARG NEXT_PUBLIC_SINGLE_ORG_SLUG
 ARG ORGANIZATIONS_ENABLED
+ARG ALLOWED_HOSTNAMES='"cal.com","cal.dev","cal-staging.com","cal.community","cal.local:3000","localhost:3000","rcalcom.up.railway.app"'
 
 ENV NEXT_PUBLIC_WEBAPP_URL=http://NEXT_PUBLIC_WEBAPP_URL_PLACEHOLDER \
     NEXT_PUBLIC_API_V2_URL=$NEXT_PUBLIC_API_V2_URL \
@@ -30,6 +31,7 @@ ENV NEXT_PUBLIC_WEBAPP_URL=http://NEXT_PUBLIC_WEBAPP_URL_PLACEHOLDER \
     CALENDSO_ENCRYPTION_KEY=${CALENDSO_ENCRYPTION_KEY} \
     NEXT_PUBLIC_SINGLE_ORG_SLUG=$NEXT_PUBLIC_SINGLE_ORG_SLUG \
     ORGANIZATIONS_ENABLED=$ORGANIZATIONS_ENABLED \
+    ALLOWED_HOSTNAMES=$ALLOWED_HOSTNAMES \
     NODE_OPTIONS=--max-old-space-size=${MAX_OLD_SPACE_SIZE} \
     BUILD_STANDALONE=true \
     CSP_POLICY=$CSP_POLICY
@@ -44,6 +46,8 @@ COPY tests ./tests
 RUN yarn config set httpTimeout 1200000
 RUN npx turbo prune --scope=@calcom/web --scope=@calcom/trpc --docker
 RUN yarn install
+# Copy app store static files (icons, etc.) to public folder
+RUN yarn --cwd apps/web workspace @calcom/web run copy-app-store-static || true
 # Build and make embed servable from web/public/embed folder
 RUN yarn workspace @calcom/trpc run build
 RUN yarn --cwd packages/embeds/embed-core workspace @calcom/embed-core run build

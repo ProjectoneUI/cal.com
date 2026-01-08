@@ -34,6 +34,9 @@ NEXT_PUBLIC_APP_NAME=Cal.com
 NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS=help@rcalcom.up.railway.app
 NEXT_PUBLIC_COMPANY_NAME=Cal.com
 
+# IMPORTANT: Allowed hostnames for the app to work
+ALLOWED_HOSTNAMES="cal.com","cal.dev","cal-staging.com","cal.community","cal.local:3000","localhost:3000","rcalcom.up.railway.app"
+
 # Build Settings
 MAX_OLD_SPACE_SIZE=8192
 NODE_ENV=production
