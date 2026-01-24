@@ -42,11 +42,16 @@ npx prisma migrate deploy --schema /calcom/packages/prisma/schema.prisma || {
 }
 echo "Migrations completed successfully!"
 
-echo "[4/4] Seeding app store..."
-npx ts-node --transpile-only /calcom/scripts/seed-app-store.ts || {
-    echo "WARNING: App store seeding failed (non-fatal)"
-}
-echo "Seeding completed!"
+echo "[4/4] App store seeding..."
+if [ "$SEED_APP_STORE" = "1" ]; then
+    echo "SEED_APP_STORE=1 detected, running seed..."
+    npx ts-node --transpile-only /calcom/scripts/seed-app-store.ts || {
+        echo "WARNING: App store seeding failed (non-fatal)"
+    }
+    echo "Seeding completed!"
+else
+    echo "Skipping app store seeding (set SEED_APP_STORE=1 to enable)"
+fi
 
 # Railway uses dynamic PORT env variable, default to 3000 if not set
 export PORT=${PORT:-3000}
