@@ -27,6 +27,30 @@ function isNotNull<T>(value: T | null | undefined): value is T {
   return value !== null && value !== undefined;
 }
 
+// Safe JSON parsing helper
+function parseJsonArray<T>(key: string, value: string | undefined): T[] {
+  if (!value) return [];
+  try {
+    // If the string is already a valid JSON array (e.g. '["a","b"]'), parse it directly
+    if (value.trim().startsWith("[") && value.trim().endsWith("]")) {
+      return JSON.parse(value) as T[];
+    }
+    // Otherwise, assume it's a comma-separated list and wrap it in brackets
+    return JSON.parse(`[${value}]`) as T[];
+  } catch (e) {
+    console.error(`Error parsing ${key} in next.config.ts:`, { value, error: e });
+    // Attempt fallback: try parsing as simple comma-separated string
+    if (value.includes(",")) {
+      return value.split(",").map(s => s.trim().replace(/^["']|["']$/g, "")) as unknown as T[];
+    }
+    return [];
+  }
+}
+
+// Needed for orgs
+export const ALLOWED_HOSTNAMES = parseJsonArray<string>("ALLOWED_HOSTNAMES", process.env.ALLOWED_HOSTNAMES);
+export const RESERVED_SUBDOMAINS = parseJsonArray<string>("RESERVED_SUBDOMAINS", process.env.RESERVED_SUBDOMAINS);
+
 function adjustEnvVariables(): void {
   // Type-safe way to modify process.env (which is typed as readonly in environment.d.ts)
   const envMutable = process.env as Record<string, string | undefined>;
@@ -154,26 +178,26 @@ const orgDomainMatcherConfig: {
   root: nextJsOrgRewriteConfig.disableRootPathRewrite
     ? null
     : {
-        has: [
-          {
-            type: "host",
-            value: nextJsOrgRewriteConfig.orgHostPath,
-          },
-        ],
-        source: "/",
-      },
+      has: [
+        {
+          type: "host",
+          value: nextJsOrgRewriteConfig.orgHostPath,
+        },
+      ],
+      source: "/",
+    },
 
   rootEmbed: nextJsOrgRewriteConfig.disableRootEmbedPathRewrite
     ? null
     : {
-        has: [
-          {
-            type: "host",
-            value: nextJsOrgRewriteConfig.orgHostPath,
-          },
-        ],
-        source: "/embed",
-      },
+      has: [
+        {
+          type: "host",
+          value: nextJsOrgRewriteConfig.orgHostPath,
+        },
+      ],
+      source: "/embed",
+    },
 
   user: {
     has: [
@@ -306,31 +330,31 @@ const nextConfig = (phase: string): NextConfig => {
         },
         ...(isOrganizationsEnabled
           ? [
-              orgDomainMatcherConfig.root
-                ? {
-                    ...orgDomainMatcherConfig.root,
-                    destination: `/team/${orgSlug}?isOrgProfile=1`,
-                  }
-                : null,
-              orgDomainMatcherConfig.rootEmbed
-                ? {
-                    ...orgDomainMatcherConfig.rootEmbed,
-                    destination: `/team/${orgSlug}/embed?isOrgProfile=1`,
-                  }
-                : null,
-              {
-                ...orgDomainMatcherConfig.user,
-                destination: `/org/${orgSlug}/:user`,
-              },
-              {
-                ...orgDomainMatcherConfig.userType,
-                destination: `/org/${orgSlug}/:user/:type`,
-              },
-              {
-                ...orgDomainMatcherConfig.userTypeEmbed,
-                destination: `/org/${orgSlug}/:user/:type/embed`,
-              },
-            ]
+            orgDomainMatcherConfig.root
+              ? {
+                ...orgDomainMatcherConfig.root,
+                destination: `/team/${orgSlug}?isOrgProfile=1`,
+              }
+              : null,
+            orgDomainMatcherConfig.rootEmbed
+              ? {
+                ...orgDomainMatcherConfig.rootEmbed,
+                destination: `/team/${orgSlug}/embed?isOrgProfile=1`,
+              }
+              : null,
+            {
+              ...orgDomainMatcherConfig.user,
+              destination: `/org/${orgSlug}/:user`,
+            },
+            {
+              ...orgDomainMatcherConfig.userType,
+              destination: `/org/${orgSlug}/:user/:type`,
+            },
+            {
+              ...orgDomainMatcherConfig.userTypeEmbed,
+              destination: `/org/${orgSlug}/:user/:type/embed`,
+            },
+          ]
           : []),
       ].filter(isNotNull);
 
@@ -461,45 +485,45 @@ const nextConfig = (phase: string): NextConfig => {
         },
         ...(isOrganizationsEnabled
           ? [
-              orgDomainMatcherConfig.root
-                ? {
-                    ...orgDomainMatcherConfig.root,
-                    headers: [
-                      {
-                        key: "X-Cal-Org-path",
-                        value: `/team/${orgSlug}`,
-                      },
-                    ],
-                  }
-                : null,
-              {
-                ...orgDomainMatcherConfig.user,
+            orgDomainMatcherConfig.root
+              ? {
+                ...orgDomainMatcherConfig.root,
                 headers: [
                   {
                     key: "X-Cal-Org-path",
-                    value: `/org/${orgSlug}/:user`,
+                    value: `/team/${orgSlug}`,
                   },
                 ],
-              },
-              {
-                ...orgDomainMatcherConfig.userType,
-                headers: [
-                  {
-                    key: "X-Cal-Org-path",
-                    value: `/org/${orgSlug}/:user/:type`,
-                  },
-                ],
-              },
-              {
-                ...orgDomainMatcherConfig.userTypeEmbed,
-                headers: [
-                  {
-                    key: "X-Cal-Org-path",
-                    value: `/org/${orgSlug}/:user/:type/embed`,
-                  },
-                ],
-              },
-            ]
+              }
+              : null,
+            {
+              ...orgDomainMatcherConfig.user,
+              headers: [
+                {
+                  key: "X-Cal-Org-path",
+                  value: `/org/${orgSlug}/:user`,
+                },
+              ],
+            },
+            {
+              ...orgDomainMatcherConfig.userType,
+              headers: [
+                {
+                  key: "X-Cal-Org-path",
+                  value: `/org/${orgSlug}/:user/:type`,
+                },
+              ],
+            },
+            {
+              ...orgDomainMatcherConfig.userTypeEmbed,
+              headers: [
+                {
+                  key: "X-Cal-Org-path",
+                  value: `/org/${orgSlug}/:user/:type/embed`,
+                },
+              ],
+            },
+          ]
           : []),
       ].filter(isNotNull);
     },
@@ -625,22 +649,22 @@ const nextConfig = (phase: string): NextConfig => {
           permanent: true,
         },
         ...(process.env.NODE_ENV === "development" &&
-        isOrganizationsEnabled &&
-        process.env.NEXT_PUBLIC_WEBAPP_URL !== "http://localhost:3000"
+          isOrganizationsEnabled &&
+          process.env.NEXT_PUBLIC_WEBAPP_URL !== "http://localhost:3000"
           ? [
-              {
-                has: [
-                  {
-                    type: "header" as const,
-                    key: "host",
-                    value: "localhost:3000",
-                  },
-                ],
-                source: "/api/integrations/:args*",
-                destination: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/integrations/:args*`,
-                permanent: false,
-              },
-            ]
+            {
+              has: [
+                {
+                  type: "header" as const,
+                  key: "host",
+                  value: "localhost:3000",
+                },
+              ],
+              source: "/api/integrations/:args*",
+              destination: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/integrations/:args*`,
+              permanent: false,
+            },
+          ]
           : []),
       ];
 
